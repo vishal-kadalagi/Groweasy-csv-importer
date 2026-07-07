@@ -82,7 +82,7 @@ export default function CSVImporter() {
     setError('');
     setRetryStatus('');
 
-    const batchSize = 30;
+    const batchSize = 100;
     let allExtracted: any[] = [];
     let allSkipped: any[] = [];
     let hasFatalError = false;
@@ -107,10 +107,15 @@ export default function CSVImporter() {
           success = true;
           setRetryStatus('');
         } catch (err: any) {
+          if (err.response?.status === 429) {
+             hasFatalError = true;
+             setError(err.response?.data?.error || 'Rate limit exceeded.');
+             break;
+          }
           attempts++;
           if (attempts >= maxRetries) {
             hasFatalError = true;
-            setError(`AI Extraction failed after ${maxRetries} retries. Please check your Gemini API key in backend/.env`);
+            setError(err.response?.data?.error || `AI Extraction failed after ${maxRetries} retries.`);
           }
           await new Promise(resolve => setTimeout(resolve, 1500 * attempts));
         }

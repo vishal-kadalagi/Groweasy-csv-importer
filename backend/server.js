@@ -38,7 +38,7 @@ app.post('/api/extract', async (req, res) => {
         return res.status(400).json({ error: 'Invalid records' });
     }
 
-    const batchSize = 30; // Small batch size to avoid hitting context limits and better reasoning
+    const batchSize = 100; // Small batch size to avoid hitting context limits and better reasoning
     const extractedRecords = [];
     const skippedRecords = [];
 
@@ -101,7 +101,10 @@ Raw records batch:
         res.json({ extracted: extractedRecords, skipped: skippedRecords });
     } catch (error) {
         console.error('AI Extraction Error:', error);
-        res.status(500).json({ error: 'Failed to process AI extraction', details: error.message });
+        if (error.status === 429) {
+            return res.status(429).json({ error: 'Gemini API Rate Limit Exceeded. Please wait 1 minute and try again.' });
+        }
+        return res.status(500).json({ error: 'Failed to extract data using AI.' });
     }
 });
 
