@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { UploadCloud, CheckCircle, AlertCircle, Loader2, Download, FileSpreadsheet, RefreshCw, Sparkles } from 'lucide-react';
 import axios from 'axios';
-import { FixedSizeList as List } from 'react-window';
-import { AutoSizer } from 'react-virtualized-auto-sizer';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useRef } from 'react';
 
 export default function CSVImporter() {
   const [file, setFile] = useState<File | null>(null);
@@ -16,6 +16,20 @@ export default function CSVImporter() {
   const [processedCount, setProcessedCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [retryStatus, setRetryStatus] = useState<string>('');
+
+  const previewParentRef = useRef<HTMLDivElement>(null);
+  const previewRowVirtualizer = useVirtualizer({
+    count: previewData.length,
+    getScrollElement: () => previewParentRef.current,
+    estimateSize: () => 60,
+  });
+
+  const resultParentRef = useRef<HTMLDivElement>(null);
+  const resultRowVirtualizer = useVirtualizer({
+    count: resultData.extracted.length,
+    getScrollElement: () => resultParentRef.current,
+    estimateSize: () => 60,
+  });
 
   const handleFileDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -126,12 +140,22 @@ export default function CSVImporter() {
 
   const previewKeys = previewData.length > 0 ? Object.keys(previewData[0]) : [];
 
-  // Row renderer for Preview Table
-  const PreviewRow = ({ index, style }: { index: number, style: any }) => {
-    const row = previewData[index];
+  const renderPreviewRow = (virtualRow: any) => {
+    const row = previewData[virtualRow.index];
     return (
-      <div style={style} className={`flex items-center px-6 border-b border-neutral-800/50 hover:bg-neutral-800/40 transition-colors ${index % 2 === 0 ? 'bg-transparent' : 'bg-neutral-900/20'}`}>
-        <div className="w-16 font-mono text-neutral-500 shrink-0">{index + 1}</div>
+      <div
+        key={virtualRow.index}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: `${virtualRow.size}px`,
+          transform: `translateY(${virtualRow.start}px)`,
+        }}
+        className={`flex items-center px-6 border-b border-neutral-800/50 hover:bg-neutral-800/40 transition-colors ${virtualRow.index % 2 === 0 ? 'bg-transparent' : 'bg-neutral-900/20'}`}
+      >
+        <div className="w-16 font-mono text-neutral-500 shrink-0">{virtualRow.index + 1}</div>
         {previewKeys.map((key, j) => (
           <div key={j} className="flex-1 w-48 shrink-0 px-4 truncate text-neutral-300 font-medium" title={row[key]}>
             {row[key] || <span className="text-neutral-600">-</span>}
@@ -141,11 +165,21 @@ export default function CSVImporter() {
     );
   };
 
-  // Row renderer for Result Table
-  const ResultRow = ({ index, style }: { index: number, style: any }) => {
-    const row = resultData.extracted[index];
+  const renderResultRow = (virtualRow: any) => {
+    const row = resultData.extracted[virtualRow.index];
     return (
-      <div style={style} className={`flex items-center px-8 border-b border-neutral-800/50 hover:bg-neutral-800/40 transition-colors ${index % 2 === 0 ? 'bg-transparent' : 'bg-neutral-900/20'}`}>
+      <div
+        key={virtualRow.index}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: `${virtualRow.size}px`,
+          transform: `translateY(${virtualRow.start}px)`,
+        }}
+        className={`flex items-center px-8 border-b border-neutral-800/50 hover:bg-neutral-800/40 transition-colors ${virtualRow.index % 2 === 0 ? 'bg-transparent' : 'bg-neutral-900/20'}`}
+      >
         <div className="flex-1 w-48 shrink-0 px-2 font-bold text-white truncate">{row.name || <span className="text-neutral-600 font-normal">N/A</span>}</div>
         <div className="flex-1 w-48 shrink-0 px-2 text-neutral-300 truncate">{row.email || <span className="text-neutral-600">-</span>}</div>
         <div className="flex-1 w-40 shrink-0 px-2 text-neutral-300 font-mono text-xs truncate">{(row.country_code ? row.country_code + ' ' : '') + (row.mobile_without_country_code || '-')}</div>
@@ -272,20 +306,10 @@ export default function CSVImporter() {
                   </div>
                 ))}
               </div>
-              <div style={{ height: 550, width: '100%' }}>
-                <AutoSizer>
-                  {({ height, width }) => (
-                    <List
-                      height={height}
-                      itemCount={previewData.length}
-                      itemSize={60}
-                      width={width}
-                      className="custom-scrollbar"
-                    >
-                      {PreviewRow}
-                    </List>
-                  )}
-                </AutoSizer>
+              <div ref={previewParentRef} className="custom-scrollbar" style={{ height: 550, width: '100%', overflow: 'auto' }}>
+                <div style={{ height: `${previewRowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+                  {previewRowVirtualizer.getVirtualItems().map(renderPreviewRow)}
+                </div>
               </div>
             </div>
           </div>
@@ -385,21 +409,11 @@ export default function CSVImporter() {
                 <div className="flex-2 w-64 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Note</div>
               </div>
               
-              <div style={{ height: 450, width: '100%' }}>
+              <div ref={resultParentRef} className="custom-scrollbar" style={{ height: 450, width: '100%', overflow: 'auto' }}>
                 {resultData.extracted.length > 0 ? (
-                  <AutoSizer>
-                    {({ height, width }) => (
-                      <List
-                        height={height}
-                        itemCount={resultData.extracted.length}
-                        itemSize={60}
-                        width={width}
-                        className="custom-scrollbar"
-                      >
-                        {ResultRow}
-                      </List>
-                    )}
-                  </AutoSizer>
+                  <div style={{ height: `${resultRowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+                    {resultRowVirtualizer.getVirtualItems().map(renderResultRow)}
+                  </div>
                 ) : (
                   <div className="flex items-center justify-center h-full text-neutral-500 text-lg">No records successfully extracted.</div>
                 )}
