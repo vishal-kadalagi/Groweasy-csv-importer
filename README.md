@@ -1,58 +1,36 @@
-# GrowEasy CSV Importer
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-An AI-powered CSV Importer that extracts CRM lead information from any valid CSV format. 
-Built as part of the GrowEasy Software Developer assignment.
+## Getting Started
 
-## Tech Stack
-- **Frontend**: Next.js (App Router), Tailwind CSS, Lucide React
-- **Backend**: Node.js, Express, Multer, CSV-Parse
-- **AI**: Google Gemini (`@google/genai`)
+First, run the development server:
 
-## Setup Instructions
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-### 1. Backend Setup
-1. Open a terminal and navigate to the `backend` directory:
-   \`\`\`bash
-   cd backend
-   \`\`\`
-2. Install dependencies (if not already installed):
-   \`\`\`bash
-   npm install
-   \`\`\`
-3. Create a `.env` file in the `backend` directory and add your Gemini API Key:
-   \`\`\`env
-   GEMINI_API_KEY=your_gemini_api_key_here
-   PORT=3001
-   \`\`\`
-4. Start the backend server:
-   \`\`\`bash
-   node server.js
-   \`\`\`
-   The backend will run on \`http://localhost:3001\`.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### 2. Frontend Setup
-1. Open a new terminal and navigate to the `frontend` directory:
-   \`\`\`bash
-   cd frontend
-   \`\`\`
-2. Install dependencies (if not already installed):
-   \`\`\`bash
-   npm install
-   \`\`\`
-3. Start the Next.js development server:
-   \`\`\`bash
-   npm run dev
-   \`\`\`
-4. Open your browser and navigate to \`http://localhost:3000\`.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Features
-- **Intelligent Field Mapping**: Maps varying column names to strict CRM fields using Gemini AI.
-- **Modern UI**: Dark-themed, glassmorphic design built with Tailwind CSS.
-- **Drag & Drop**: Easily upload CSV files.
-- **Data Preview**: Review data before confirming the import.
-- **Extraction Results**: Separate views for successfully mapped records and skipped records (missing required email/mobile fields).
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Evaluation Focus
-- Handled AI prompt engineering to ensure correct JSON output structure and fallback strategies.
-- Provided a fully responsive React table with horizontal/vertical scrolling and sticky headers.
-- Graceful error handling across frontend and backend.
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
