@@ -120,7 +120,9 @@ export default function CSVImporter() {
           attempts++;
           if (attempts >= maxRetries) {
             hasFatalError = true;
-            setError(err.response?.data?.error || `AI Extraction failed after ${maxRetries} retries.`);
+            const errorMsg = err.response?.data?.error || `AI Extraction failed after ${maxRetries} retries.`;
+            const details = err.response?.data?.details;
+            setError(details ? `${errorMsg} (${details})` : errorMsg);
           }
           await new Promise(resolve => setTimeout(resolve, 1500 * attempts));
         }
