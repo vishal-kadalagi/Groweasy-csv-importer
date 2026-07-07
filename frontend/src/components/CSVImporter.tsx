@@ -57,13 +57,11 @@ export default function CSVImporter() {
     setError('');
     setStep('uploading');
     
-    const formData = new FormData();
-    formData.append('file', uploadedFile);
-
     try {
+      const fileContent = await uploadedFile.text();
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-      const res = await axios.post(`${apiUrl}/api/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const res = await axios.post(`${apiUrl}/api/upload`, { fileContent }, {
+        headers: { 'Content-Type': 'application/json' }
       });
       if (res.data.records) {
         setPreviewData(res.data.records);

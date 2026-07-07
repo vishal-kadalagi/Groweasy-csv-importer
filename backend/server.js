@@ -17,13 +17,13 @@ if (!process.env.GEMINI_API_KEY) {
 }
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'MISSING_API_KEY' });
 
-app.post(['/api/upload', '/*/upload', /.*\/upload/], upload.single('file'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
+app.post(['/api/upload', '/*/upload', /.*\/upload/], (req, res) => {
+    const { fileContent } = req.body;
+    
+    if (!fileContent) {
+        return res.status(400).json({ error: 'No file content provided' });
     }
 
-    const fileContent = req.file.buffer.toString('utf-8');
-    
     parse(fileContent, {
         columns: true,
         skip_empty_lines: true

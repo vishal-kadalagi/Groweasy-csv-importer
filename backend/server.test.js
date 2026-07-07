@@ -12,9 +12,10 @@ app.use(express.json());
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Mock /api/upload route
-app.post('/api/upload', upload.single('file'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-  parse(req.file.buffer, { columns: true, skip_empty_lines: true }, (err, records) => {
+app.post('/api/upload', (req, res) => {
+  const { fileContent } = req.body;
+  if (!fileContent) return res.status(400).json({ error: 'No file content provided' });
+  parse(fileContent, { columns: true, skip_empty_lines: true }, (err, records) => {
     if (err) return res.status(500).json({ error: 'Failed to parse CSV' });
     res.json({ records });
   });
@@ -45,10 +46,10 @@ app.post('/api/extract', async (req, res) => {
 describe('CSV Importer Backend API', () => {
   describe('POST /api/upload', () => {
     it('should parse a valid CSV file', async () => {
-      const csvBuffer = Buffer.from('name,email\nJohn,john@example.com\nJane,jane@example.com');
+      const csvString = 'name,email\nJohn,john@example.com\nJane,jane@example.com';
       const response = await request(app)
         .post('/api/upload')
-        .attach('file', csvBuffer, 'test.csv');
+        .send({ fileContent: csvString });
       
       expect(response.status).toBe(200);
       expect(response.body.records).toHaveLength(2);
@@ -56,7 +57,7 @@ describe('CSV Importer Backend API', () => {
     });
 
     it('should return 400 if no file is uploaded', async () => {
-      const response = await request(app).post('/api/upload');
+      const response = await request(app).post('/api/upload').send({});
       expect(response.status).toBe(400);
     });
   });
