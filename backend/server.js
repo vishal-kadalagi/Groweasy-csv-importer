@@ -12,9 +12,12 @@ app.use(express.json({ limit: '50mb' }));
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Assuming process.env.GEMINI_API_KEY is available
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }); 
+if (!process.env.GEMINI_API_KEY) {
+    console.warn("WARNING: GEMINI_API_KEY environment variable is missing.");
+}
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'MISSING_API_KEY' });
 
-app.post('/api/upload', upload.single('file'), (req, res) => {
+app.post(['/api/upload', '/*/upload', /.*\/upload/], upload.single('file'), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
     }
@@ -32,7 +35,7 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
     });
 });
 
-app.post('/api/extract', async (req, res) => {
+app.post(['/api/extract', '/*/extract', /.*\/extract/], async (req, res) => {
     const { records } = req.body;
     if (!records || !Array.isArray(records)) {
         return res.status(400).json({ error: 'Invalid records' });
