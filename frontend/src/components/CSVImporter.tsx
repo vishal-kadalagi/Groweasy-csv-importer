@@ -61,7 +61,8 @@ export default function CSVImporter() {
     formData.append('file', uploadedFile);
 
     try {
-      const res = await axios.post('http://localhost:3001/api/upload', formData, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+      const res = await axios.post(`${apiUrl}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (res.data.records) {
@@ -99,7 +100,8 @@ export default function CSVImporter() {
         try {
           if (attempts > 0) setRetryStatus(`Network glitch. Retrying batch (Attempt ${attempts + 1}/${maxRetries})...`);
           
-          const res = await axios.post('http://localhost:3001/api/extract', { records: batch });
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+          const res = await axios.post(`${apiUrl}/api/extract`, { records: batch });
           
           allExtracted = [...allExtracted, ...(res.data.extracted || [])];
           allSkipped = [...allSkipped, ...(res.data.skipped || [])];
@@ -108,9 +110,12 @@ export default function CSVImporter() {
           setRetryStatus('');
         } catch (err: any) {
           if (err.response?.status === 429) {
-             hasFatalError = true;
-             setError(err.response?.data?.error || 'Rate limit exceeded.');
-             break;
+             for (let s = 60; s > 0; s--) {
+               setRetryStatus(`Rate limit exceeded. Pausing for ${s} seconds before resuming...`);
+               await new Promise(resolve => setTimeout(resolve, 1000));
+             }
+             setRetryStatus('Resuming import...');
+             continue;
           }
           attempts++;
           if (attempts >= maxRetries) {
