@@ -157,7 +157,7 @@ export default function CSVImporter() {
       >
         <div className="w-16 font-mono text-neutral-500 shrink-0">{virtualRow.index + 1}</div>
         {previewKeys.map((key, j) => (
-          <div key={j} className="flex-1 w-48 shrink-0 px-4 truncate text-neutral-300 font-medium" title={row[key]}>
+          <div key={j} className="w-48 shrink-0 px-4 truncate text-neutral-300 font-medium" title={row[key]}>
             {row[key] || <span className="text-neutral-600">-</span>}
           </div>
         ))}
@@ -180,9 +180,9 @@ export default function CSVImporter() {
         }}
         className={`flex items-center px-8 border-b border-neutral-800/50 hover:bg-neutral-800/40 transition-colors ${virtualRow.index % 2 === 0 ? 'bg-transparent' : 'bg-neutral-900/20'}`}
       >
-        <div className="flex-1 w-48 shrink-0 px-2 font-bold text-white truncate">{row.name || <span className="text-neutral-600 font-normal">N/A</span>}</div>
-        <div className="flex-1 w-48 shrink-0 px-2 text-neutral-300 truncate">{row.email || <span className="text-neutral-600">-</span>}</div>
-        <div className="flex-1 w-40 shrink-0 px-2 text-neutral-300 font-mono text-xs truncate">{(row.country_code ? row.country_code + ' ' : '') + (row.mobile_without_country_code || '-')}</div>
+        <div className="w-48 shrink-0 px-2 font-bold text-white truncate">{row.name || <span className="text-neutral-600 font-normal">N/A</span>}</div>
+        <div className="w-48 shrink-0 px-2 text-neutral-300 truncate">{row.email || <span className="text-neutral-600">-</span>}</div>
+        <div className="w-40 shrink-0 px-2 text-neutral-300 font-mono text-xs truncate">{(row.country_code ? row.country_code + ' ' : '') + (row.mobile_without_country_code || '-')}</div>
         <div className="w-48 shrink-0 px-2">
           {row.crm_status ? (
             <span className="bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-md text-xs font-bold border border-emerald-500/20 whitespace-nowrap tracking-wide">
@@ -190,7 +190,7 @@ export default function CSVImporter() {
             </span>
           ) : <span className="text-neutral-600">-</span>}
         </div>
-        <div className="flex-2 w-64 shrink-0 px-2 text-neutral-400 truncate" title={row.crm_note}>{row.crm_note || <span className="text-neutral-600">-</span>}</div>
+        <div className="w-64 shrink-0 px-2 text-neutral-400 truncate" title={row.crm_note}>{row.crm_note || <span className="text-neutral-600">-</span>}</div>
       </div>
     );
   };
@@ -298,17 +298,21 @@ export default function CSVImporter() {
             </div>
             
             <div className="bg-neutral-900/40 rounded-[2rem] border border-neutral-800 overflow-hidden shadow-2xl backdrop-blur-xl flex flex-col h-[600px]">
-              <div className="flex items-center px-6 py-4 bg-neutral-950/90 border-b border-neutral-800 z-10 sticky top-0">
-                <div className="w-16 font-bold tracking-widest text-neutral-400 text-xs uppercase shrink-0">#</div>
-                {previewKeys.map((key, i) => (
-                  <div key={i} className="flex-1 w-48 shrink-0 px-4 font-bold tracking-widest text-neutral-400 text-xs uppercase truncate">
-                    {key}
+              <div className="overflow-x-auto custom-scrollbar flex-1">
+                <div style={{ minWidth: 'max-content' }} className="w-full">
+                  <div className="flex items-center px-6 py-4 bg-neutral-950/90 border-b border-neutral-800">
+                    <div className="w-16 font-bold tracking-widest text-neutral-400 text-xs uppercase shrink-0">#</div>
+                    {previewKeys.map((key, i) => (
+                      <div key={i} className="w-48 shrink-0 px-4 font-bold tracking-widest text-neutral-400 text-xs uppercase truncate" title={key}>
+                        {key}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div ref={previewParentRef} className="custom-scrollbar" style={{ height: 550, width: '100%', overflow: 'auto' }}>
-                <div style={{ height: `${previewRowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
-                  {previewRowVirtualizer.getVirtualItems().map(renderPreviewRow)}
+                  <div ref={previewParentRef} className="custom-scrollbar" style={{ height: 520, overflowY: 'auto', overflowX: 'hidden' }}>
+                    <div style={{ height: `${previewRowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+                      {previewRowVirtualizer.getVirtualItems().map(renderPreviewRow)}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -401,22 +405,26 @@ export default function CSVImporter() {
                 </div>
               </div>
               
-              <div className="flex items-center px-8 py-4 bg-neutral-950/95 border-b border-neutral-800 shrink-0">
-                <div className="flex-1 w-48 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Name</div>
-                <div className="flex-1 w-48 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Email</div>
-                <div className="flex-1 w-40 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Mobile</div>
-                <div className="w-48 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Status</div>
-                <div className="flex-2 w-64 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Note</div>
-              </div>
-              
-              <div ref={resultParentRef} className="custom-scrollbar" style={{ height: 450, width: '100%', overflow: 'auto' }}>
-                {resultData.extracted.length > 0 ? (
-                  <div style={{ height: `${resultRowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
-                    {resultRowVirtualizer.getVirtualItems().map(renderResultRow)}
+              <div className="overflow-x-auto custom-scrollbar flex-1">
+                <div style={{ minWidth: 'max-content' }} className="w-full h-full flex flex-col">
+                  <div className="flex items-center px-8 py-4 bg-neutral-950/95 border-b border-neutral-800 shrink-0">
+                    <div className="w-48 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Name</div>
+                    <div className="w-48 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Email</div>
+                    <div className="w-40 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Mobile</div>
+                    <div className="w-48 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Status</div>
+                    <div className="w-64 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Note</div>
                   </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-neutral-500 text-lg">No records successfully extracted.</div>
-                )}
+                  
+                  <div ref={resultParentRef} className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+                    {resultData.extracted.length > 0 ? (
+                      <div style={{ height: `${resultRowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+                        {resultRowVirtualizer.getVirtualItems().map(renderResultRow)}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-neutral-500 text-lg py-12">No records successfully extracted.</div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
             
