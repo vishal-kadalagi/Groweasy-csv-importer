@@ -82,7 +82,7 @@ export default function CSVImporter() {
     setError('');
     setRetryStatus('');
 
-    const batchSize = 10;
+    const batchSize = 30;
     let allExtracted: any[] = [];
     let allSkipped: any[] = [];
     let hasFatalError = false;

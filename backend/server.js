@@ -38,7 +38,7 @@ app.post('/api/extract', async (req, res) => {
         return res.status(400).json({ error: 'Invalid records' });
     }
 
-    const batchSize = 10; // Small batch size to avoid hitting context limits and better reasoning
+    const batchSize = 30; // Small batch size to avoid hitting context limits and better reasoning
     const extractedRecords = [];
     const skippedRecords = [];
 
