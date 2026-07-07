@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { UploadCloud, CheckCircle, AlertCircle, Loader2, Download, FileSpreadsheet, RefreshCw, Sparkles } from 'lucide-react';
 import axios from 'axios';
 import { FixedSizeList as List } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
+import { AutoSizer } from 'react-virtualized-auto-sizer';
 
 export default function CSVImporter() {
   const [file, setFile] = useState<File | null>(null);
