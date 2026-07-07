@@ -272,7 +272,7 @@ export default function CSVImporter() {
                   </div>
                 ))}
               </div>
-              <div className="flex-1">
+              <div style={{ height: 550, width: '100%' }}>
                 <AutoSizer>
                   {({ height, width }) => (
                     <List
@@ -385,7 +385,7 @@ export default function CSVImporter() {
                 <div className="flex-2 w-64 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Note</div>
               </div>
               
-              <div className="flex-1">
+              <div style={{ height: 450, width: '100%' }}>
                 {resultData.extracted.length > 0 ? (
                   <AutoSizer>
                     {({ height, width }) => (
