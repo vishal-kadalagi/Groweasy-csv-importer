@@ -101,10 +101,10 @@ Raw records batch:
         res.json({ extracted: extractedRecords, skipped: skippedRecords });
     } catch (error) {
         console.error('AI Extraction Error:', error);
-        if (error.status === 429) {
-            return res.status(429).json({ error: 'Gemini API Rate Limit Exceeded. Please wait 1 minute and try again.' });
+        if (error.status == 429 || (error.message && error.message.includes('429')) || (error.message && error.message.includes('quota'))) {
+            return res.status(429).json({ error: 'Gemini API Rate Limit Exceeded. Please wait exactly 1 minute for the quota to reset, then try again.' });
         }
-        return res.status(500).json({ error: 'Failed to extract data using AI.' });
+        return res.status(500).json({ error: 'Failed to extract data using AI.', details: error.message });
     }
 });
 
