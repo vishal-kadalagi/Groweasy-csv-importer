@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { UploadCloud, CheckCircle, AlertCircle, Loader2, Download, FileSpreadsheet, RefreshCw, Sparkles } from 'lucide-react';
 import axios from 'axios';
 import { List } from 'react-window';
-import { AutoSizer } from 'react-virtualized-auto-sizer';
 
 export default function CSVImporter() {
   const [file, setFile] = useState<File | null>(null);
@@ -273,19 +272,15 @@ export default function CSVImporter() {
                 ))}
               </div>
               <div style={{ height: 550, width: '100%' }}>
-                <AutoSizer>
-                  {({ height, width }) => (
-                    <List
-                      height={height}
-                      itemCount={previewData.length}
-                      itemSize={60}
-                      width={width}
-                      className="custom-scrollbar"
-                    >
-                      {PreviewRow}
-                    </List>
-                  )}
-                </AutoSizer>
+                <List
+                  height={550}
+                  itemCount={previewData.length}
+                  itemSize={60}
+                  width="100%"
+                  className="custom-scrollbar"
+                >
+                  {PreviewRow}
+                </List>
               </div>
             </div>
           </div>
@@ -387,19 +382,15 @@ export default function CSVImporter() {
               
               <div style={{ height: 450, width: '100%' }}>
                 {resultData.extracted.length > 0 ? (
-                  <AutoSizer>
-                    {({ height, width }) => (
-                      <List
-                        height={height}
-                        itemCount={resultData.extracted.length}
-                        itemSize={60}
-                        width={width}
-                        className="custom-scrollbar"
-                      >
-                        {ResultRow}
-                      </List>
-                    )}
-                  </AutoSizer>
+                  <List
+                    height={450}
+                    itemCount={resultData.extracted.length}
+                    itemSize={60}
+                    width="100%"
+                    className="custom-scrollbar"
+                  >
+                    {ResultRow}
+                  </List>
                 ) : (
                   <div className="flex items-center justify-center h-full text-neutral-500 text-lg">No records successfully extracted.</div>
                 )}
