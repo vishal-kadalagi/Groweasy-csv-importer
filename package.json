@@ -1,34 +1,14 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
-  "private": true,
+  "name": "groweasy_assignment",
+  "version": "1.0.0",
+  "description": "GrowEasy CRM CSV Importer",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@google/genai": "^2.10.0",
-    "@tanstack/react-virtual": "^3.14.5",
-    "axios": "^1.18.1",
-    "csv-parse": "^7.0.1",
-    "lucide-react": "^1.23.0",
-    "next": "16.2.10",
-    "papaparse": "^5.5.4",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && node server.js",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@types/react-virtualized-auto-sizer": "^1.0.4",
-    "@types/react-window": "^1.8.8",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.10",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "concurrently": "^8.2.2"
   }
 }

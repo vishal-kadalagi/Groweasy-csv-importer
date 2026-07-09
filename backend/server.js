@@ -1,22 +1,58 @@
-import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const multer = require('multer');
+const { parse } = require('csv-parse/sync');
+const { GoogleGenAI } = require('@google/genai');
 
-// Initialize Gemini SDK
-// Note: process.env.GEMINI_API_KEY will be automatically loaded from Next.js .env files
+const app = express();
+const port = process.env.PORT || 3001;
+
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
+
+// Setup multer for file uploads in memory
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Initialize Gemini
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'MISSING_API_KEY' });
 
-export async function POST(request: Request) {
+app.post('/api/upload', upload.single('file'), (req, res) => {
   try {
-    const body = await request.json();
-    const { records } = body;
+    let fileContent = '';
+
+    // Handle both raw JSON payload (for backwards compatibility if frontend hasn't updated to multipart) and multipart form-data
+    if (req.body && req.body.fileContent) {
+        fileContent = req.body.fileContent;
+    } else if (req.file) {
+        fileContent = req.file.buffer.toString('utf8');
+    } else {
+        return res.status(400).json({ error: 'No file content provided' });
+    }
+
+    const records = parse(fileContent, {
+      columns: true,
+      skip_empty_lines: true
+    });
+
+    res.json({ records });
+  } catch (error) {
+    console.error('Error parsing CSV:', error);
+    res.status(500).json({ error: 'Error parsing CSV', details: error.message });
+  }
+});
+
+app.post('/api/extract', async (req, res) => {
+  try {
+    const { records } = req.body;
 
     if (!records || !Array.isArray(records)) {
-      return NextResponse.json({ error: 'Invalid records' }, { status: 400 });
+      return res.status(400).json({ error: 'Invalid records' });
     }
 
     const batchSize = 100;
-    const extractedRecords: any[] = [];
-    const skippedRecords: any[] = [];
+    const extractedRecords = [];
+    const skippedRecords = [];
 
     const prompt = `You are an AI assistant that maps raw CSV data into a strict CRM format.
 Given a list of raw records, map them to the following fields:
@@ -73,12 +109,16 @@ Raw records batch:
       if (result.skipped) skippedRecords.push(...result.skipped);
     }
 
-    return NextResponse.json({ extracted: extractedRecords, skipped: skippedRecords });
-  } catch (error: any) {
+    res.json({ extracted: extractedRecords, skipped: skippedRecords });
+  } catch (error) {
     console.error('AI Extraction Error:', error);
     if (error.status === 429 || (error.message && error.message.includes('429')) || (error.message && error.message.includes('quota'))) {
-      return NextResponse.json({ error: 'Gemini API Rate Limit Exceeded. Please wait exactly 1 minute for the quota to reset, then try again.' }, { status: 429 });
+      return res.status(429).json({ error: 'Gemini API Rate Limit Exceeded. Please wait exactly 1 minute for the quota to reset, then try again.' });
     }
-    return NextResponse.json({ error: 'Failed to extract data using AI.', details: error.message }, { status: 500 });
+    res.status(500).json({ error: 'Failed to extract data using AI.', details: error.message });
   }
-}
+});
+
+app.listen(port, () => {
+  console.log(`Backend server running on port ${port}`);
+});

@@ -1,5 +1,7 @@
 'use client';
 
+import Papa from 'papaparse';
+
 import { useState } from 'react';
 import { UploadCloud, CheckCircle, AlertCircle, Loader2, Download, FileSpreadsheet, RefreshCw, Sparkles } from 'lucide-react';
 import axios from 'axios';
@@ -28,6 +30,13 @@ export default function CSVImporter() {
   const resultRowVirtualizer = useVirtualizer({
     count: resultData.extracted.length,
     getScrollElement: () => resultParentRef.current,
+    estimateSize: () => 60,
+  });
+
+  const skippedParentRef = useRef<HTMLDivElement>(null);
+  const skippedRowVirtualizer = useVirtualizer({
+    count: resultData.skipped.length,
+    getScrollElement: () => skippedParentRef.current,
     estimateSize: () => 60,
   });
 
@@ -81,7 +90,7 @@ export default function CSVImporter() {
     setError('');
     setRetryStatus('');
 
-    const batchSize = 100;
+    const batchSize = 20;
     let allExtracted: any[] = [];
     let allSkipped: any[] = [];
     let hasFatalError = false;
@@ -132,6 +141,7 @@ export default function CSVImporter() {
       }
     }
 
+    await new Promise(resolve => setTimeout(resolve, 800));
     setStep('result');
   };
 
@@ -142,6 +152,20 @@ export default function CSVImporter() {
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
     link.setAttribute("download", "GrowEasy_Template.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const downloadExport = () => {
+    if (resultData.extracted.length === 0) return;
+    const csvContent = Papa.unparse(resultData.extracted);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "GrowEasy_Cleaned_Leads.csv");
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -190,9 +214,9 @@ export default function CSVImporter() {
         }}
         className={`flex items-center px-8 border-b border-neutral-800/50 hover:bg-neutral-800/40 transition-colors ${virtualRow.index % 2 === 0 ? 'bg-transparent' : 'bg-neutral-900/20'}`}
       >
-        <div className="w-48 shrink-0 px-2 font-bold text-white truncate">{row.name || <span className="text-neutral-600 font-normal">N/A</span>}</div>
-        <div className="w-48 shrink-0 px-2 text-neutral-300 truncate">{row.email || <span className="text-neutral-600">-</span>}</div>
-        <div className="w-40 shrink-0 px-2 text-neutral-300 font-mono text-xs truncate">{(row.country_code ? row.country_code + ' ' : '') + (row.mobile_without_country_code || '-')}</div>
+        <div className="w-48 shrink-0 px-2 font-bold text-white truncate" title={row.name}>{row.name || <span className="text-neutral-600 font-normal">N/A</span>}</div>
+        <div className="w-48 shrink-0 px-2 text-neutral-300 truncate" title={row.email}>{row.email || <span className="text-neutral-600">-</span>}</div>
+        <div className="w-40 shrink-0 px-2 text-neutral-300 font-mono text-xs truncate" title={(row.country_code ? row.country_code + ' ' : '') + (row.mobile_without_country_code || '-')}>{(row.country_code ? row.country_code + ' ' : '') + (row.mobile_without_country_code || '-')}</div>
         <div className="w-48 shrink-0 px-2">
           {row.crm_status ? (
             <span className="bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-md text-xs font-bold border border-emerald-500/20 whitespace-nowrap tracking-wide">
@@ -200,7 +224,45 @@ export default function CSVImporter() {
             </span>
           ) : <span className="text-neutral-600">-</span>}
         </div>
+        <div className="w-40 shrink-0 px-2 text-neutral-400 truncate" title={row.company}>{row.company || <span className="text-neutral-600">-</span>}</div>
+        <div className="w-32 shrink-0 px-2 text-neutral-400 truncate" title={row.city}>{row.city || <span className="text-neutral-600">-</span>}</div>
+        <div className="w-32 shrink-0 px-2 text-neutral-400 truncate" title={row.state}>{row.state || <span className="text-neutral-600">-</span>}</div>
+        <div className="w-32 shrink-0 px-2 text-neutral-400 truncate" title={row.country}>{row.country || <span className="text-neutral-600">-</span>}</div>
+        <div className="w-40 shrink-0 px-2 text-neutral-400 truncate" title={row.lead_owner}>{row.lead_owner || <span className="text-neutral-600">-</span>}</div>
+        <div className="w-40 shrink-0 px-2 text-neutral-400 truncate" title={row.data_source}>{row.data_source || <span className="text-neutral-600">-</span>}</div>
+        <div className="w-40 shrink-0 px-2 text-neutral-400 truncate" title={row.possession_time}>{row.possession_time || <span className="text-neutral-600">-</span>}</div>
+        <div className="w-64 shrink-0 px-2 text-neutral-400 truncate" title={row.description}>{row.description || <span className="text-neutral-600">-</span>}</div>
         <div className="w-64 shrink-0 px-2 text-neutral-400 truncate" title={row.crm_note}>{row.crm_note || <span className="text-neutral-600">-</span>}</div>
+      </div>
+    );
+  };
+
+  const renderSkippedRow = (virtualRow: any) => {
+    const row = resultData.skipped[virtualRow.index];
+    const originalKeys = Object.keys(row).filter(k => k !== 'reason');
+    return (
+      <div
+        key={virtualRow.index}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: `${virtualRow.size}px`,
+          transform: `translateY(${virtualRow.start}px)`,
+        }}
+        className={`flex items-center px-8 border-b border-red-900/30 hover:bg-red-900/20 transition-colors ${virtualRow.index % 2 === 0 ? 'bg-transparent' : 'bg-red-950/10'}`}
+      >
+        <div className="w-64 shrink-0 px-4">
+          <span className="bg-red-500/10 text-red-400 px-3 py-1.5 rounded-md text-xs font-bold border border-red-500/20 tracking-wide">
+            {row.reason || "Unknown Error"}
+          </span>
+        </div>
+        {originalKeys.map((key, i) => (
+          <div key={i} className="w-48 shrink-0 px-4 text-neutral-400 truncate text-sm" title={row[key]}>
+            {row[key] || '-'}
+          </div>
+        ))}
       </div>
     );
   };
@@ -392,10 +454,17 @@ export default function CSVImporter() {
                 </div>
               </div>
 
-              <div className="flex flex-col justify-center bg-neutral-900/40 border border-neutral-800 p-8 rounded-[2rem] shadow-2xl backdrop-blur-xl">
+              <div className="flex flex-col justify-center gap-3 bg-neutral-900/40 border border-neutral-800 p-8 rounded-[2rem] shadow-2xl backdrop-blur-xl">
+                <button 
+                  onClick={downloadExport}
+                  className="bg-emerald-500 hover:bg-emerald-400 hover:scale-[1.02] active:scale-95 text-black px-6 py-4 rounded-xl font-bold transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2"
+                >
+                  <Download size={20} />
+                  Download Cleaned CSV
+                </button>
                 <button 
                   onClick={() => { setStep('upload'); setFile(null); setPreviewData([]); setResultData({extracted:[], skipped:[]})}}
-                  className="bg-white hover:bg-neutral-200 hover:scale-[1.02] active:scale-95 text-black px-8 py-5 rounded-2xl font-bold transition-all shadow-xl shadow-white/5 flex items-center justify-center gap-2"
+                  className="bg-white hover:bg-neutral-200 hover:scale-[1.02] active:scale-95 text-black px-6 py-4 rounded-xl font-bold transition-all shadow-xl shadow-white/5 flex items-center justify-center gap-2"
                 >
                   <UploadCloud size={20} />
                   Import Another CSV
@@ -422,6 +491,14 @@ export default function CSVImporter() {
                     <div className="w-48 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Email</div>
                     <div className="w-40 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Mobile</div>
                     <div className="w-48 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Status</div>
+                    <div className="w-40 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Company</div>
+                    <div className="w-32 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">City</div>
+                    <div className="w-32 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">State</div>
+                    <div className="w-32 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Country</div>
+                    <div className="w-40 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Lead Owner</div>
+                    <div className="w-40 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Data Source</div>
+                    <div className="w-40 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Possession</div>
+                    <div className="w-64 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Description</div>
                     <div className="w-64 shrink-0 px-2 font-bold tracking-widest text-neutral-400 text-xs uppercase">Note</div>
                   </div>
                   
@@ -437,6 +514,40 @@ export default function CSVImporter() {
                 </div>
               </div>
             </div>
+
+            {/* Skipped Records Table - Virtualized */}
+            {resultData.skipped.length > 0 && (
+              <div className="bg-red-950/10 rounded-[2rem] border border-red-900/30 overflow-hidden shadow-2xl backdrop-blur-2xl flex flex-col h-[400px]">
+                <div className="p-8 border-b border-red-900/30 flex justify-between items-center bg-neutral-950/80 shrink-0">
+                  <div>
+                    <h3 className="font-bold text-2xl text-white flex items-center gap-3">
+                      <AlertCircle className="text-red-500" size={24} />
+                      Skipped Records
+                    </h3>
+                    <p className="text-red-400 mt-1">These rows were rejected by the AI</p>
+                  </div>
+                </div>
+                
+                <div className="overflow-x-auto custom-scrollbar flex-1">
+                  <div style={{ minWidth: 'max-content' }} className="w-full h-full flex flex-col">
+                    <div className="flex items-center px-8 py-4 bg-neutral-950/95 border-b border-red-900/30 shrink-0">
+                      <div className="w-64 shrink-0 px-4 font-bold tracking-widest text-red-500/80 text-xs uppercase">Rejection Reason</div>
+                      {Object.keys(resultData.skipped[0]).filter(k => k !== 'reason').map((key, i) => (
+                        <div key={i} className="w-48 shrink-0 px-4 font-bold tracking-widest text-neutral-500 text-xs uppercase truncate" title={key}>
+                          {key}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div ref={skippedParentRef} className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+                      <div style={{ height: `${skippedRowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+                        {skippedRowVirtualizer.getVirtualItems().map(renderSkippedRow)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             
           </div>
         )}
