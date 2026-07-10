@@ -55,3 +55,14 @@ Ensure you provide `GEMINI_API_KEY` in the environment when using Docker.
 - ✅ Progress indicators during AI processing
 - ✅ Comprehensive Dark Mode UI using Tailwind CSS
 - ✅ Docker configuration included
+- ✅ Export extracted records directly to CSV
+- ✅ Dedicated UI for skipped records explaining rejection reasons
+- ✅ Comprehensive unit testing implemented for backend APIs
+
+## Screenshots
+
+![Screenshot 1](./screenshots/1.png)
+![Screenshot 2](./screenshots/2.png)
+![Screenshot 3](./screenshots/3.png)
+![Screenshot 4](./screenshots/4.png)
+![Screenshot 5](./screenshots/5.png)
